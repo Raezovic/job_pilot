@@ -105,3 +105,67 @@ Last updated: 2026-07-27
 **Pattern notes:**
 Header component displaying links to Dashboard, Find Jobs, and Profile if user is logged in, along with dynamic CTAs.
 
+### Profile
+
+#### ProfileAttentionBanner
+File: [ProfileAttentionBanner.tsx](file:///c:/Users/ADMIN/OneDrive/Desktop/job_pilot/components/profile/ProfileAttentionBanner.tsx)
+Last updated: 2026-08-17
+
+| Property | Class |
+| --- | --- |
+| Background | `bg-surface` |
+| Border | `border border-border` |
+| Border radius | `rounded-2xl` |
+| Text — primary | `text-text-primary` |
+| Text — secondary | `text-text-secondary` |
+| Spacing | `p-6`, `gap-6`, `space-y-3` |
+| Badge style | `text-white bg-warning rounded-md` |
+| Accent usage | `text-warning` (alert icon), `stroke-accent` (70% purple progress ring) |
+
+#### ConnectedAccounts
+File: [ConnectedAccounts.tsx](file:///c:/Users/ADMIN/OneDrive/Desktop/job_pilot/components/profile/ConnectedAccounts.tsx)
+Last updated: 2026-08-17
+
+| Property | Class |
+| --- | --- |
+| Background | `bg-surface`, `bg-linkedin-light/50` (icon bg) |
+| Border | `border border-border` |
+| Border radius | `rounded-2xl` (card), `rounded-xl` (inner box) |
+| Text — primary | `text-text-primary` |
+| Text — secondary | `text-text-secondary`, `text-text-muted` |
+| Spacing | `p-6` (card), `p-4` (inner item), `space-y-4` |
+| Hover state | `hover:bg-linkedin/90` |
+| Accent usage | `bg-linkedin text-linkedin-foreground` (Connect button & icon) |
+
+#### ResumeUploadSection
+File: [ResumeUploadSection.tsx](file:///c:/Users/ADMIN/OneDrive/Desktop/job_pilot/components/profile/ResumeUploadSection.tsx)
+Last updated: 2026-08-17
+
+| Property | Class |
+| --- | --- |
+| Background | `bg-surface`, `bg-surface-secondary/60` (drop zone) |
+| Border | `border border-border`, `border-2 border-dashed border-border-muted` (drop zone) |
+| Border radius | `rounded-2xl` (card), `rounded-xl` (drop zone) |
+| Text — primary | `text-text-primary` |
+| Text — secondary | `text-text-secondary`, `text-text-muted` |
+| Spacing | `p-6` (card), `p-8` (drop zone), `space-y-6` |
+| Hover state | `hover:border-accent/40`, `hover:bg-accent-dark` |
+| Accent usage | `bg-accent-light` (icon circle), `bg-accent text-accent-foreground` (generate button) |
+
+#### ProfileForm
+File: [ProfileForm.tsx](file:///c:/Users/ADMIN/OneDrive/Desktop/job_pilot/components/profile/ProfileForm.tsx)
+Last updated: 2026-08-17
+
+| Property | Class |
+| --- | --- |
+| Background | `bg-surface`, `bg-surface-secondary` (inputs & select), `bg-surface-secondary/40` (work exp card) |
+| Border | `border border-border` |
+| Border radius | `rounded-2xl` (card), `rounded-xl` (work exp card), `rounded-lg` (inputs/buttons), `rounded-md` (tags) |
+| Text — primary | `text-text-primary` |
+| Text — secondary | `text-text-secondary` (uppercase labels) |
+| Spacing | `p-6 sm:p-8`, `space-y-8`, `gap-4 sm:gap-5` |
+| Hover state | `hover:bg-accent-dark`, `hover:bg-border-light` |
+| Accent usage | `bg-accent hover:bg-accent-dark text-accent-foreground` (save button), `focus:ring-accent` |
+
+
+

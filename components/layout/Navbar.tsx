@@ -77,40 +77,36 @@ export function Navbar() {
 
         {/* Navigation Items */}
         <nav className="hidden md:flex items-center gap-8">
-          {isAuthenticated && (
-            <>
-              <Link
-                href="/dashboard"
-                className={`text-sm font-medium leading-5 transition-colors ${
-                  isActive("/dashboard")
-                    ? "text-accent"
-                    : "text-text-dark hover:text-accent"
-                }`}
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/find-jobs"
-                className={`text-sm font-medium leading-5 transition-colors ${
-                  isActive("/find-jobs")
-                    ? "text-accent"
-                    : "text-text-dark hover:text-accent"
-                }`}
-              >
-                Find Jobs
-              </Link>
-              <Link
-                href="/profile"
-                className={`text-sm font-medium leading-5 transition-colors ${
-                  isActive("/profile")
-                    ? "text-accent"
-                    : "text-text-dark hover:text-accent"
-                }`}
-              >
-                Profile
-              </Link>
-            </>
-          )}
+          <Link
+            href="/dashboard"
+            className={`text-sm font-medium leading-5 transition-colors ${
+              isActive("/dashboard")
+                ? "text-accent"
+                : "text-text-dark hover:text-accent"
+            }`}
+          >
+            Dashboard
+          </Link>
+          <Link
+            href="/find-jobs"
+            className={`text-sm font-medium leading-5 transition-colors ${
+              isActive("/find-jobs")
+                ? "text-accent"
+                : "text-text-dark hover:text-accent"
+            }`}
+          >
+            Find Jobs
+          </Link>
+          <Link
+            href="/profile"
+            className={`text-sm font-medium leading-5 transition-colors ${
+              isActive("/profile")
+                ? "text-accent"
+                : "text-text-dark hover:text-accent"
+            }`}
+          >
+            Profile
+          </Link>
         </nav>
 
         {/* Action Button */}
