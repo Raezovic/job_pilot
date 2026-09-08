@@ -18,6 +18,18 @@ export type JobType = "fulltime" | "parttime" | "contract";
 export type AgentRunStatus = "running" | "completed" | "failed";
 export type AgentLogLevel = "info" | "success" | "warning" | "error";
 
+export type MissingField =
+  | "FULL NAME"
+  | "PHONE"
+  | "LOCATION"
+  | "JOB TITLE"
+  | "EXPERIENCE LEVEL"
+  | "YEARS OF EXP"
+  | "SKILLS"
+  | "EDUCATION"
+  | "WORK EXPERIENCE"
+  | "JOB PREFERENCES";
+
 // ============================================================
 // JSONB shapes
 // ============================================================

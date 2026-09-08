@@ -6,26 +6,46 @@ import { ProfileAttentionBanner } from "@/components/profile/ProfileAttentionBan
 import { ConnectedAccounts } from "@/components/profile/ConnectedAccounts";
 import { ResumeUploadSection } from "@/components/profile/ResumeUploadSection";
 import { ProfileForm } from "@/components/profile/ProfileForm";
+import { calculateCompletion } from "@/lib/profile-utils";
+import { Profile } from "@/types";
 
 export default async function ProfilePage() {
   const insforge = await createInsforgeServer();
-  const {
-    data: { user },
-  } = await insforge.auth.getCurrentUser();
+  const { data: authData, error: authError } = await insforge.auth.getCurrentUser();
+  const user = authData?.user;
+
+  if (!user || authError) {
+    redirect("/login");
+  }
+
+  const { data: profile } = await insforge.database
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  const typedProfile = (profile as Profile) || null;
+  const completeness = calculateCompletion(typedProfile);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
       <main className="flex-grow py-8 px-4 sm:px-6">
         <div className="mx-auto max-w-[840px] space-y-6">
-          <ProfileAttentionBanner />
+          <ProfileAttentionBanner
+            completionPercentage={completeness.percentage}
+            missingFields={completeness.missingFields}
+          />
           <ConnectedAccounts />
-          <ResumeUploadSection />
-          <ProfileForm />
+          <ResumeUploadSection resumePdfUrl={typedProfile?.resume_pdf_url ?? null} />
+          <ProfileForm
+            key={typedProfile?.updated_at || typedProfile?.id || user.id}
+            initialProfile={typedProfile}
+            userEmail={user.email ?? ""}
+          />
         </div>
       </main>
       <Footer />
     </div>
   );
 }
-

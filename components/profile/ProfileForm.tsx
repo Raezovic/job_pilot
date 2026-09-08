@@ -1,60 +1,113 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, Plus, X, Calendar } from "lucide-react";
+import { useState, useTransition } from "react";
+import { ChevronDown, Plus, X, Calendar, Loader2, CheckCircle2, AlertCircle, Trash2 } from "lucide-react";
+import { saveProfileAction } from "@/actions/profile";
+import {
+  Profile,
+  ExperienceLevel,
+  RemotePreference,
+  WorkAuthorization,
+  CoverLetterTone,
+  WorkExperienceEntry,
+  Education,
+} from "@/types";
 
-export function ProfileForm() {
-  // Personal Info State
-  const [fullName, setFullName] = useState("Faizan Ali");
-  const [email] = useState("faizan@jsmastery.pro");
-  const [phone, setPhone] = useState("+1 (555) 000-0000");
-  const [location, setLocation] = useState("City, Country");
-  const [linkedinUrl, setLinkedinUrl] = useState("https://linkedin.com/in/faizan");
-  const [portfolioUrl, setPortfolioUrl] = useState("https://github.com/jsmastery");
-  const [workAuth, setWorkAuth] = useState("Citizen");
+interface ProfileFormProps {
+  initialProfile?: Profile | null;
+  userEmail?: string;
+}
 
-  // Professional Info State
-  const [currentTitle, setCurrentTitle] = useState("Frontend Engineer");
-  const [experienceLevel, setExperienceLevel] = useState("Junior");
-  const [yearsExperience, setYearsExperience] = useState("4");
+export function ProfileForm({ initialProfile, userEmail = "" }: ProfileFormProps) {
+  const [isPending, startTransition] = useTransition();
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // 1. Personal Info State
+  const [fullName, setFullName] = useState(initialProfile?.full_name ?? "");
+  const [email] = useState(userEmail || initialProfile?.email || "");
+  const [phone, setPhone] = useState(initialProfile?.phone ?? "");
+  const [location, setLocation] = useState(initialProfile?.location ?? "");
+  const [linkedinUrl, setLinkedinUrl] = useState(initialProfile?.linkedin_url ?? "");
+  const [portfolioUrl, setPortfolioUrl] = useState(initialProfile?.portfolio_url ?? "");
+  const [workAuth, setWorkAuth] = useState<WorkAuthorization>(
+    initialProfile?.work_authorization ?? "citizen"
+  );
+
+  // 2. Professional Info State
+  const [currentTitle, setCurrentTitle] = useState(initialProfile?.current_title ?? "");
+  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>(
+    initialProfile?.experience_level ?? "mid"
+  );
+  const [yearsExperience, setYearsExperience] = useState(
+    initialProfile?.years_experience !== null && initialProfile?.years_experience !== undefined
+      ? String(initialProfile.years_experience)
+      : ""
+  );
 
   // Skills tag input
-  const [skills, setSkills] = useState(["React", "TypeScript", "Next.js", "Tailwind CSS"]);
+  const [skills, setSkills] = useState<string[]>(initialProfile?.skills ?? []);
   const [newSkillInput, setNewSkillInput] = useState("");
 
   // Industries tag input
-  const [industries, setIndustries] = useState<string[]>([]);
+  const [industries, setIndustries] = useState<string[]>(initialProfile?.industries ?? []);
   const [newIndustryInput, setNewIndustryInput] = useState("");
 
-  // Work Experience State
-  const [workExperiences, setWorkExperiences] = useState([
-    {
-      id: "1",
-      company: "Vercel",
-      title: "Frontend Engineer",
-      startDate: "January 2022",
-      endDate: "",
-      current: true,
-      responsibilities: "Built Next.js features and optimized web vitals. Led a team of 3 developers.",
-    },
-  ]);
+  // 3. Work Experience State
+  const initialWorkExperience: (WorkExperienceEntry & { id: string })[] =
+    initialProfile?.work_experience && initialProfile.work_experience.length > 0
+      ? initialProfile.work_experience.map((w, idx) => ({
+          ...w,
+          id: String(idx + 1),
+        }))
+      : [
+          {
+            id: "1",
+            company: "",
+            title: "",
+            startDate: "",
+            endDate: "",
+            current: false,
+            responsibilities: "",
+          },
+        ];
 
-  // Education State
-  const [highestDegree, setHighestDegree] = useState("High School");
-  const [fieldOfStudy, setFieldOfStudy] = useState("Computer Science");
-  const [institutionName, setInstitutionName] = useState("");
-  const [graduationYear, setGraduationYear] = useState("");
+  const [workExperiences, setWorkExperiences] = useState(initialWorkExperience);
 
-  // Job Preferences State
-  const [jobTitlesSeeking, setJobTitlesSeeking] = useState("Frontend Engineer, React Developer");
-  const [remotePreference, setRemotePreference] = useState("Any");
-  const [salaryExpectation, setSalaryExpectation] = useState("");
-  const [preferredLocations, setPreferredLocations] = useState("");
+  // 4. Education State
+  const [highestDegree, setHighestDegree] = useState(
+    initialProfile?.education?.degree ?? "Bachelor's"
+  );
+  const [fieldOfStudy, setFieldOfStudy] = useState(initialProfile?.education?.field ?? "");
+  const [institutionName, setInstitutionName] = useState(
+    initialProfile?.education?.institution ?? ""
+  );
+  const [graduationYear, setGraduationYear] = useState(
+    initialProfile?.education?.graduationYear ?? ""
+  );
+
+  // 5. Job Preferences State
+  const [jobTitlesSeeking, setJobTitlesSeeking] = useState(
+    initialProfile?.job_titles_seeking?.join(", ") ?? ""
+  );
+  const [remotePreference, setRemotePreference] = useState<RemotePreference>(
+    initialProfile?.remote_preference ?? "any"
+  );
+  const [salaryExpectation, setSalaryExpectation] = useState(
+    initialProfile?.salary_expectation ?? ""
+  );
+  const [preferredLocations, setPreferredLocations] = useState(
+    initialProfile?.preferred_locations?.join(", ") ?? ""
+  );
+  const [coverLetterTone, setCoverLetterTone] = useState<CoverLetterTone>(
+    initialProfile?.cover_letter_tone ?? "enthusiastic"
+  );
 
   // Skill Handlers
   const handleAddSkill = () => {
-    if (newSkillInput.trim() && !skills.includes(newSkillInput.trim())) {
-      setSkills([...skills, newSkillInput.trim()]);
+    const trimmed = newSkillInput.trim();
+    if (trimmed && !skills.includes(trimmed)) {
+      setSkills([...skills, trimmed]);
       setNewSkillInput("");
     }
   };
@@ -65,8 +118,9 @@ export function ProfileForm() {
 
   // Industry Handlers
   const handleAddIndustry = () => {
-    if (newIndustryInput.trim() && !industries.includes(newIndustryInput.trim())) {
-      setIndustries([...industries, newIndustryInput.trim()]);
+    const trimmed = newIndustryInput.trim();
+    if (trimmed && !industries.includes(trimmed)) {
+      setIndustries([...industries, trimmed]);
       setNewIndustryInput("");
     }
   };
@@ -77,6 +131,7 @@ export function ProfileForm() {
 
   // Work Experience Handlers
   const handleAddRole = () => {
+    if (workExperiences.length >= 5) return;
     setWorkExperiences([
       ...workExperiences,
       {
@@ -91,10 +146,102 @@ export function ProfileForm() {
     ]);
   };
 
-  const handleWorkExpChange = (id: string, field: string, value: any) => {
+  const handleRemoveRole = (id: string) => {
+    if (workExperiences.length === 1) {
+      setWorkExperiences([
+        {
+          id: Date.now().toString(),
+          company: "",
+          title: "",
+          startDate: "",
+          endDate: "",
+          current: false,
+          responsibilities: "",
+        },
+      ]);
+      return;
+    }
+    setWorkExperiences(workExperiences.filter((w) => w.id !== id));
+  };
+
+  const handleWorkExpChange = (
+    id: string,
+    field: keyof WorkExperienceEntry,
+    value: string | boolean | null
+  ) => {
     setWorkExperiences(
       workExperiences.map((exp) => (exp.id === id ? { ...exp, [field]: value } : exp))
     );
+  };
+
+  // Save Handler
+  const handleSave = () => {
+    setSuccessMessage(null);
+    setErrorMessage(null);
+
+    const parsedEducation: Education = {
+      degree: highestDegree.trim(),
+      field: fieldOfStudy.trim(),
+      institution: institutionName.trim(),
+      graduationYear: graduationYear.trim(),
+    };
+
+    const sanitizedWorkExperience: WorkExperienceEntry[] = workExperiences
+      .filter((w) => w.company.trim() || w.title.trim())
+      .map(({ id: _, ...rest }) => ({
+        ...rest,
+        company: rest.company.trim(),
+        title: rest.title.trim(),
+        startDate: rest.startDate.trim(),
+        endDate: rest.current ? null : rest.endDate ? rest.endDate.trim() : null,
+        responsibilities: rest.responsibilities.trim(),
+      }));
+
+    const parsedJobTitles = jobTitlesSeeking
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0);
+
+    const parsedPreferredLocations = preferredLocations
+      .split(",")
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+
+    const parseYearsExp = (val: string): number | null => {
+      if (!val || !val.trim()) return null;
+      const num = parseInt(val.replace(/[^0-9]/g, ""), 10);
+      return Number.isNaN(num) ? null : num;
+    };
+
+    const payload = {
+      full_name: fullName.trim() || null,
+      phone: phone.trim() || null,
+      location: location.trim() || null,
+      linkedin_url: linkedinUrl.trim() || null,
+      portfolio_url: portfolioUrl.trim() || null,
+      work_authorization: workAuth,
+      current_title: currentTitle.trim() || null,
+      experience_level: experienceLevel,
+      years_experience: parseYearsExp(yearsExperience),
+      skills,
+      industries,
+      work_experience: sanitizedWorkExperience,
+      education: parsedEducation,
+      job_titles_seeking: parsedJobTitles,
+      remote_preference: remotePreference,
+      salary_expectation: salaryExpectation.trim() || null,
+      preferred_locations: parsedPreferredLocations,
+      cover_letter_tone: coverLetterTone,
+    };
+
+    startTransition(async () => {
+      const result = await saveProfileAction(payload);
+      if (result.success) {
+        setSuccessMessage("Profile saved successfully!");
+      } else {
+        setErrorMessage(result.error || "Failed to save profile.");
+      }
+    });
   };
 
   return (
@@ -124,6 +271,7 @@ export function ProfileForm() {
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
+              placeholder="e.g. Jane Doe"
               className="w-full bg-surface-secondary border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium transition-colors"
             />
           </div>
@@ -205,12 +353,12 @@ export function ProfileForm() {
             <div className="relative">
               <select
                 value={workAuth}
-                onChange={(e) => setWorkAuth(e.target.value)}
+                onChange={(e) => setWorkAuth(e.target.value as WorkAuthorization)}
                 className="w-full bg-surface-secondary border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium appearance-none cursor-pointer pr-10"
               >
-                <option value="Citizen">Citizen</option>
-                <option value="Permanent Resident">Permanent Resident</option>
-                <option value="Visa Required">Require Sponsorship / Visa</option>
+                <option value="citizen">Citizen</option>
+                <option value="permanent_resident">Permanent Resident</option>
+                <option value="visa_required">Require Sponsorship / Visa</option>
               </select>
               <ChevronDown className="w-4 h-4 text-text-secondary absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
@@ -235,7 +383,7 @@ export function ProfileForm() {
               type="text"
               value={currentTitle}
               onChange={(e) => setCurrentTitle(e.target.value)}
-              placeholder="Frontend Engineer"
+              placeholder="e.g. Frontend Engineer"
               className="w-full bg-surface-secondary border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium transition-colors"
             />
           </div>
@@ -249,13 +397,13 @@ export function ProfileForm() {
               <div className="relative">
                 <select
                   value={experienceLevel}
-                  onChange={(e) => setExperienceLevel(e.target.value)}
+                  onChange={(e) => setExperienceLevel(e.target.value as ExperienceLevel)}
                   className="w-full bg-surface-secondary border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium appearance-none cursor-pointer pr-10"
                 >
-                  <option value="Junior">Junior</option>
-                  <option value="Mid">Mid-Level</option>
-                  <option value="Senior">Senior</option>
-                  <option value="Lead">Lead</option>
+                  <option value="junior">Junior</option>
+                  <option value="mid">Mid-Level</option>
+                  <option value="senior">Senior</option>
+                  <option value="lead">Lead</option>
                 </select>
                 <ChevronDown className="w-4 h-4 text-text-secondary absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
@@ -267,6 +415,8 @@ export function ProfileForm() {
               </label>
               <input
                 type="number"
+                min="0"
+                max="50"
                 value={yearsExperience}
                 onChange={(e) => setYearsExperience(e.target.value)}
                 placeholder="4"
@@ -291,7 +441,7 @@ export function ProfileForm() {
                     handleAddSkill();
                   }
                 }}
-                placeholder="Add a skill"
+                placeholder="Add a skill (e.g. React, Next.js)"
                 className="flex-1 bg-surface border border-border rounded-lg px-3.5 py-2 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium placeholder:text-text-muted"
               />
               <button
@@ -338,7 +488,7 @@ export function ProfileForm() {
                     handleAddIndustry();
                   }
                 }}
-                placeholder="E.g. FinTech, Healthcare"
+                placeholder="E.g. FinTech, Healthcare, E-Commerce"
                 className="flex-1 bg-surface border border-border rounded-lg px-3.5 py-2 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium placeholder:text-text-muted"
               />
               <button
@@ -391,11 +541,25 @@ export function ProfileForm() {
         </div>
 
         <div className="space-y-4">
-          {workExperiences.map((exp) => (
+          {workExperiences.map((exp, index) => (
             <div
               key={exp.id}
-              className="bg-surface-secondary/40 border border-border rounded-xl p-5 space-y-4"
+              className="bg-surface-secondary/40 border border-border rounded-xl p-5 space-y-4 relative"
             >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-text-secondary">Role {index + 1}</span>
+                {workExperiences.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveRole(exp.id)}
+                    className="text-text-muted hover:text-error transition-colors text-xs flex items-center gap-1 cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Remove
+                  </button>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Company Name */}
                 <div>
@@ -406,7 +570,7 @@ export function ProfileForm() {
                     type="text"
                     value={exp.company}
                     onChange={(e) => handleWorkExpChange(exp.id, "company", e.target.value)}
-                    placeholder="Vercel"
+                    placeholder="e.g. Acme Corp"
                     className="w-full bg-surface border border-border rounded-lg px-3.5 py-2 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium"
                   />
                 </div>
@@ -420,7 +584,7 @@ export function ProfileForm() {
                     type="text"
                     value={exp.title}
                     onChange={(e) => handleWorkExpChange(exp.id, "title", e.target.value)}
-                    placeholder="Frontend Engineer"
+                    placeholder="e.g. Software Engineer"
                     className="w-full bg-surface border border-border rounded-lg px-3.5 py-2 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium"
                   />
                 </div>
@@ -437,7 +601,7 @@ export function ProfileForm() {
                       type="text"
                       value={exp.startDate}
                       onChange={(e) => handleWorkExpChange(exp.id, "startDate", e.target.value)}
-                      placeholder="January 2022"
+                      placeholder="e.g. Jan 2022"
                       className="w-full bg-surface border border-border rounded-lg px-3.5 py-2 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium pr-10"
                     />
                     <Calendar className="w-4 h-4 text-text-secondary absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -462,10 +626,10 @@ export function ProfileForm() {
                   </div>
                   <input
                     type="text"
-                    value={exp.current ? "-------- ----" : exp.endDate}
+                    value={exp.current ? "Present" : exp.endDate || ""}
                     disabled={exp.current}
                     onChange={(e) => handleWorkExpChange(exp.id, "endDate", e.target.value)}
-                    placeholder="Present"
+                    placeholder="e.g. Present or Dec 2024"
                     className={`w-full border border-border rounded-lg px-3.5 py-2 text-sm font-medium ${
                       exp.current
                         ? "bg-surface-secondary text-text-muted cursor-not-allowed"
@@ -484,7 +648,7 @@ export function ProfileForm() {
                   rows={3}
                   value={exp.responsibilities}
                   onChange={(e) => handleWorkExpChange(exp.id, "responsibilities", e.target.value)}
-                  placeholder="Built Next.js features and optimized web vitals..."
+                  placeholder="Built core product features, improved web vitals, led technical architecture..."
                   className="w-full bg-surface border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium leading-relaxed"
                 />
               </div>
@@ -517,7 +681,7 @@ export function ProfileForm() {
                 <option value="Bachelor's">Bachelor's Degree</option>
                 <option value="Master's">Master's Degree</option>
                 <option value="Doctorate">Doctorate (Ph.D.)</option>
-                <option value="Other">Other</option>
+                <option value="Other">Other / Self-Taught</option>
               </select>
               <ChevronDown className="w-4 h-4 text-text-secondary absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
@@ -532,7 +696,7 @@ export function ProfileForm() {
               type="text"
               value={fieldOfStudy}
               onChange={(e) => setFieldOfStudy(e.target.value)}
-              placeholder="Computer Science"
+              placeholder="e.g. Computer Science"
               className="w-full bg-surface-secondary border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium transition-colors"
             />
           </div>
@@ -546,7 +710,7 @@ export function ProfileForm() {
               type="text"
               value={institutionName}
               onChange={(e) => setInstitutionName(e.target.value)}
-              placeholder="E.g. State University"
+              placeholder="e.g. Stanford University"
               className="w-full bg-surface border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium transition-colors placeholder:text-text-muted"
             />
           </div>
@@ -560,7 +724,7 @@ export function ProfileForm() {
               type="text"
               value={graduationYear}
               onChange={(e) => setGraduationYear(e.target.value)}
-              placeholder="YYYY"
+              placeholder="YYYY (e.g. 2023)"
               className="w-full bg-surface border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium transition-colors placeholder:text-text-muted"
             />
           </div>
@@ -578,13 +742,13 @@ export function ProfileForm() {
           {/* Job Titles Seeking */}
           <div>
             <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1.5">
-              JOB TITLES SEEKING
+              JOB TITLES SEEKING (COMMA SEPARATED)
             </label>
             <input
               type="text"
               value={jobTitlesSeeking}
               onChange={(e) => setJobTitlesSeeking(e.target.value)}
-              placeholder="Frontend Engineer, React Developer"
+              placeholder="Frontend Engineer, React Developer, Full Stack Engineer"
               className="w-full bg-surface-secondary border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium transition-colors"
             />
           </div>
@@ -598,13 +762,13 @@ export function ProfileForm() {
               <div className="relative">
                 <select
                   value={remotePreference}
-                  onChange={(e) => setRemotePreference(e.target.value)}
+                  onChange={(e) => setRemotePreference(e.target.value as RemotePreference)}
                   className="w-full bg-surface-secondary border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium appearance-none cursor-pointer pr-10"
                 >
-                  <option value="Any">Any</option>
-                  <option value="Remote">Remote</option>
-                  <option value="Hybrid">Hybrid</option>
-                  <option value="Onsite">Onsite</option>
+                  <option value="any">Any</option>
+                  <option value="remote">Remote</option>
+                  <option value="hybrid">Hybrid</option>
+                  <option value="onsite">Onsite</option>
                 </select>
                 <ChevronDown className="w-4 h-4 text-text-secondary absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
@@ -619,7 +783,7 @@ export function ProfileForm() {
                 type="text"
                 value={salaryExpectation}
                 onChange={(e) => setSalaryExpectation(e.target.value)}
-                placeholder="E.g. $120k+"
+                placeholder="e.g. $120k+ / $150,000"
                 className="w-full bg-surface border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium transition-colors placeholder:text-text-muted"
               />
             </div>
@@ -628,26 +792,69 @@ export function ProfileForm() {
           {/* Preferred Locations */}
           <div>
             <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1.5">
-              PREFERRED LOCATIONS (OPTIONAL)
+              PREFERRED LOCATIONS (COMMA SEPARATED, OPTIONAL)
             </label>
             <input
               type="text"
               value={preferredLocations}
               onChange={(e) => setPreferredLocations(e.target.value)}
-              placeholder="E.g. New York, London"
+              placeholder="e.g. New York, London, Remote US"
               className="w-full bg-surface border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium transition-colors placeholder:text-text-muted"
             />
           </div>
+
+          {/* Cover Letter Tone */}
+          <div>
+            <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1.5">
+              COVER LETTER TONE
+            </label>
+            <div className="relative">
+              <select
+                value={coverLetterTone}
+                onChange={(e) => setCoverLetterTone(e.target.value as CoverLetterTone)}
+                className="w-full bg-surface-secondary border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-medium appearance-none cursor-pointer pr-10"
+              >
+                <option value="enthusiastic">Enthusiastic</option>
+                <option value="formal">Formal</option>
+                <option value="casual">Casual</option>
+              </select>
+              <ChevronDown className="w-4 h-4 text-text-secondary absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* Notifications */}
+      {errorMessage && (
+        <div className="flex items-center gap-2 text-xs font-semibold text-error bg-error/10 border border-error/20 p-3.5 rounded-lg">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="flex items-center gap-2 text-xs font-semibold text-success-darker bg-success-lightest border border-success-light p-3.5 rounded-lg">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span>{successMessage}</span>
+        </div>
+      )}
 
       {/* Save Profile Button */}
       <div className="pt-2">
         <button
           type="button"
-          className="w-full bg-accent hover:bg-accent-dark text-accent-foreground text-sm font-bold py-3.5 rounded-xl transition-colors shadow-sm cursor-pointer"
+          onClick={handleSave}
+          disabled={isPending}
+          className="w-full bg-accent hover:bg-accent-dark text-accent-foreground text-sm font-bold py-3.5 rounded-xl transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70"
         >
-          Save Profile
+          {isPending ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Saving Profile...</span>
+            </>
+          ) : (
+            <span>Save Profile</span>
+          )}
         </button>
       </div>
     </div>

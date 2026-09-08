@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 2 — Profile Page
-**Last completed:** 05 Profile Page — Full UI
-**Next:** 06 Profile Save Logic
+**Last completed:** 06 Profile Save Logic
+**Next:** 07 AI Profile Extraction from Resume
 
 ---
 
@@ -24,7 +24,7 @@ Update this file after every completed feature. Any AI agent reading this should
 ### Phase 2 — Profile Page
 
 - [x] 05 Profile Page — Full UI
-- [ ] 06 Profile Save Logic
+- [x] 06 Profile Save Logic
 - [ ] 07 AI Profile Extraction from Resume
 - [ ] 08 Resume PDF Generation from Profile
 
@@ -63,6 +63,10 @@ Update this file after every completed feature. Any AI agent reading this should
 - DB trigger `set_updated_at` auto-manages `profiles.updated_at` — app code never sets it.
 - RLS enabled on all four tables scoped to `auth.uid()`. Storage bucket `resumes` created as private via InsForge MCP `create-bucket`.
 - TypeScript types for all DB tables defined in `types/index.ts`.
+- Profile mutations wired via Server Action `saveProfileAction` in `actions/profile.ts`, with revalidation of `/profile` and `/dashboard`.
+- Profile completeness derived via `calculateProfileCompleteness` in `lib/profile-utils.ts` and synced on every save.
+- Resume uploads handled via Server Action `uploadResumeAction` in `actions/profile.ts`, validated for PDF mime type and 5MB limit, stored in InsForge Storage `resumes/{user.id}/resume.pdf` with `upsert: true`.
+- PostHog `profile_completed` event triggered server-side on first transition to complete status.
 
 ---
 
