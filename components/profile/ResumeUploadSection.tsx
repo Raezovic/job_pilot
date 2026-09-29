@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useRef, useTransition, DragEvent, ChangeEvent } from "react";
-import { Upload, FileText, CheckCircle2, AlertCircle, Loader2, ExternalLink } from "lucide-react";
-import { uploadResumeAction } from "@/actions/profile";
+import { Upload, FileText, CheckCircle2, AlertCircle, Loader2, ExternalLink, Sparkles } from "lucide-react";
+import { uploadResumeAction, extractProfileFromResumeAction, ProfileFormInput } from "@/actions/profile";
 
 interface ResumeUploadSectionProps {
   resumePdfUrl?: string | null;
+  onExtracted?: (extracted: Partial<ProfileFormInput>) => void;
 }
 
-export function ResumeUploadSection({ resumePdfUrl }: ResumeUploadSectionProps) {
+export function ResumeUploadSection({ resumePdfUrl, onExtracted }: ResumeUploadSectionProps) {
   const [isPending, startTransition] = useTransition();
+  const [isExtracting, startExtractTransition] = useTransition();
   const [isDragging, setIsDragging] = useState(false);
   const [currentUrl, setCurrentUrl] = useState<string | null>(resumePdfUrl ?? null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -43,6 +45,20 @@ export function ResumeUploadSection({ resumePdfUrl }: ResumeUploadSectionProps) 
         setSuccessMessage("Resume uploaded successfully.");
       } else {
         setErrorMessage(result.error || "Failed to upload resume.");
+      }
+    });
+  };
+
+  const handleExtract = () => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    startExtractTransition(async () => {
+      const result = await extractProfileFromResumeAction();
+      if (result.success && result.data) {
+        setSuccessMessage("Resume parsed with AI! Review auto-filled fields below.");
+        onExtracted?.(result.data);
+      } else {
+        setErrorMessage(result.error || "Failed to extract profile from resume.");
       }
     });
   };
@@ -164,15 +180,35 @@ export function ResumeUploadSection({ resumePdfUrl }: ResumeUploadSectionProps) 
               </p>
             </div>
           </div>
-          <a
-            href="/api/resume/view"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs font-semibold text-accent hover:text-accent-dark transition-colors px-3 py-1.5 rounded-md hover:bg-accent-muted"
-          >
-            <span>View PDF</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExtract}
+              disabled={isExtracting || isPending}
+              className="flex items-center gap-1.5 text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent-dark transition-colors px-3 py-1.5 rounded-md shadow-2xs cursor-pointer disabled:opacity-60"
+            >
+              {isExtracting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Extracting...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Extract Profile</span>
+                </>
+              )}
+            </button>
+            <a
+              href="/api/resume/view"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs font-semibold text-accent hover:text-accent-dark transition-colors px-3 py-1.5 rounded-md hover:bg-accent-muted"
+            >
+              <span>View PDF</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
         </div>
       )}
 

@@ -4,8 +4,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ProfileAttentionBanner } from "@/components/profile/ProfileAttentionBanner";
 import { ConnectedAccounts } from "@/components/profile/ConnectedAccounts";
-import { ResumeUploadSection } from "@/components/profile/ResumeUploadSection";
-import { ProfileForm } from "@/components/profile/ProfileForm";
+import { ProfilePageClient } from "@/components/profile/ProfilePageClient";
 import { calculateCompletion } from "@/lib/profile-utils";
 import { Profile } from "@/types";
 
@@ -37,9 +36,7 @@ export default async function ProfilePage() {
             missingFields={completeness.missingFields}
           />
           <ConnectedAccounts />
-          <ResumeUploadSection resumePdfUrl={typedProfile?.resume_pdf_url ?? null} />
-          <ProfileForm
-            key={typedProfile?.updated_at || typedProfile?.id || user.id}
+          <ProfilePageClient
             initialProfile={typedProfile}
             userEmail={user.email ?? ""}
           />

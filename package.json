@@ -6,12 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "node -e \"const fs=require('fs');const p='node_modules/@insforge/shared-schemas/package.json';if(fs.existsSync(p)){const j=JSON.parse(fs.readFileSync(p));if(!j.exports['.'].require){j.exports['.'].require='./dist/index.js';j.exports['.'].default='./dist/index.js';fs.writeFileSync(p,JSON.stringify(j,null,2));}}\""
   },
   "dependencies": {
     "@insforge/sdk": "^1.5.0",
+    "@types/pdf-parse": "^1.1.5",
     "lucide-react": "^1.27.0",
     "next": "16.2.11",
+    "openai": "^7.23.0",
+    "pdf-parse": "^2.4.5",
     "posthog-js": "^1.410.1",
     "posthog-node": "^5.47.6",
     "react": "19.2.4",

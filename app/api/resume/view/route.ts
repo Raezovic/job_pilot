@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createInsforgeServer } from "@/lib/insforge-server";
+import { createInsforgeServer, createInsforgeAdmin } from "@/lib/insforge-server";
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,8 +13,9 @@ export async function GET(req: NextRequest) {
 
     const storagePath = `${user.id}/resume.pdf`;
 
-    // Create a time-limited signed URL for private bucket access (1 hour)
-    const { data: signedData, error: signedError } = await insforge.storage
+    // Create a time-limited signed URL for private bucket access (1 hour) via admin client
+    const admin = createInsforgeAdmin();
+    const { data: signedData, error: signedError } = await admin.storage
       .from("resumes")
       .createSignedUrl(storagePath, 3600);
 

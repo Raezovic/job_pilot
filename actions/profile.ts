@@ -1,7 +1,10 @@
 "use server";
 
+import path from "path";
+import { pathToFileURL } from "url";
 import { revalidatePath } from "next/cache";
-import { createInsforgeServer } from "@/lib/insforge-server";
+import OpenAI from "openai";
+import { createInsforgeServer, createInsforgeAdmin } from "@/lib/insforge-server";
 import { calculateCompletion } from "@/lib/profile-utils";
 import { createPostHogServer } from "@/lib/posthog-server";
 import {
@@ -168,7 +171,8 @@ export async function uploadResumeAction(formData: FormData) {
     const fileBuffer = await file.arrayBuffer();
     const fileBlob = new Blob([fileBuffer], { type: "application/pdf" });
 
-    const { error: uploadError } = await insforge.storage
+    const admin = createInsforgeAdmin();
+    const { error: uploadError } = await admin.storage
       .from("resumes")
       .upload(storagePath, fileBlob);
 
@@ -202,5 +206,138 @@ export async function uploadResumeAction(formData: FormData) {
   }
 }
 
+export async function extractProfileFromResumeAction() {
+  try {
+    const insforge = await createInsforgeServer();
+    const { data: authData, error: authError } = await insforge.auth.getCurrentUser();
+    const user = authData?.user;
+
+    if (!user || authError) {
+      return { success: false, error: "Unauthorized. Please log in." };
+    }
+
+    const storagePath = `${user.id}/resume.pdf`;
+
+    const admin = createInsforgeAdmin();
+    const { data: fileData, error: downloadError } = await admin.storage
+      .from("resumes")
+      .download(storagePath);
+
+    if (downloadError || !fileData) {
+      return {
+        success: false,
+        error: "No uploaded resume found. Please upload a PDF resume first.",
+      };
+    }
+
+    const arrayBuffer = await fileData.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Extract text using pdf-parse v2 (PDFParse class)
+    const { PDFParse } = await import("pdf-parse");
+    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+    const workerPath = path.resolve(
+      process.cwd(),
+      "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs"
+    );
+    pdfjs.GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
+
+    const parser = new PDFParse({ data: buffer });
+    const textResult = await parser.getText();
+    await parser.destroy();
+
+    const rawText = textResult.text?.trim() || "";
+
+    if (!rawText || rawText.length < 50) {
+      return {
+        success: false,
+        error: "Could not extract text from this PDF. Please try a different file.",
+      };
+    }
+
+    const groqApiKey = process.env.GROK_API_KEY || process.env.GROQ_API_KEY;
+    const openaiApiKey = process.env.OPENAI_API_KEY;
+
+    let aiClient: OpenAI;
+    let modelName = "openai/gpt-oss-120b";
+
+    if (groqApiKey) {
+      aiClient = new OpenAI({
+        apiKey: groqApiKey,
+        baseURL: "https://api.groq.com/openai/v1",
+      });
+      modelName = "openai/gpt-oss-120b";
+    } else if (openaiApiKey) {
+      aiClient = new OpenAI({ apiKey: openaiApiKey });
+      modelName = "gpt-4o";
+    } else {
+      return {
+        success: false,
+        error: "AI API Key (Groq or OpenAI) is missing in server environment.",
+      };
+    }
+
+    const systemPrompt = `You are a professional resume parser. Extract structured profile data from the raw resume text into valid JSON matching this schema:
+{
+  "full_name": string | null,
+  "phone": string | null,
+  "location": string | null,
+  "linkedin_url": string | null,
+  "portfolio_url": string | null,
+  "work_authorization": "citizen" | "permanent_resident" | "visa_required" | null,
+  "current_title": string | null,
+  "experience_level": "junior" | "mid" | "senior" | "lead" | null,
+  "years_experience": number | null,
+  "skills": string[],
+  "industries": string[],
+  "work_experience": Array<{
+    "company": string,
+    "title": string,
+    "startDate": string,
+    "endDate": string | null,
+    "current": boolean,
+    "responsibilities": string
+  }>,
+  "education": {
+    "degree": string,
+    "field": string,
+    "institution": string,
+    "graduationYear": string
+  } | null,
+  "job_titles_seeking": string[],
+  "remote_preference": "remote" | "onsite" | "hybrid" | "any" | null,
+  "salary_expectation": string | null,
+  "preferred_locations": string[],
+  "cover_letter_tone": "formal" | "casual" | "enthusiastic" | null
+}
+Include at most 3 work_experience items (most recent/relevant). Return strictly valid JSON.`;
+
+    const completion = await aiClient.chat.completions.create({
+      model: modelName,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `RAW RESUME TEXT:\n${rawText}` },
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.1,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      return { success: false, error: "AI failed to parse resume content." };
+    }
+
+    const extractedData = JSON.parse(content) as Partial<ProfileFormInput>;
+    return { success: true, data: extractedData };
+  } catch (error) {
+    console.error("[actions/profile/extractProfile]", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to extract profile from resume",
+    };
+  }
+}
+
 export const saveProfile = saveProfileAction;
 export const uploadResume = uploadResumeAction;
+export const extractProfile = extractProfileFromResumeAction;

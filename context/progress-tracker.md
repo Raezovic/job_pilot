@@ -7,8 +7,8 @@ Update this file after every completed feature. Any AI agent reading this should
 ## Current Status
 
 **Phase:** Phase 2 — Profile Page
-**Last completed:** 06 Profile Save Logic
-**Next:** 07 AI Profile Extraction from Resume
+**Last completed:** 07 AI Profile Extraction from Resume
+**Next:** 08 Resume PDF Generation from Profile
 
 ---
 
@@ -25,7 +25,7 @@ Update this file after every completed feature. Any AI agent reading this should
 
 - [x] 05 Profile Page — Full UI
 - [x] 06 Profile Save Logic
-- [ ] 07 AI Profile Extraction from Resume
+- [x] 07 AI Profile Extraction from Resume
 - [ ] 08 Resume PDF Generation from Profile
 
 ### Phase 3 — Find Jobs Page
@@ -67,6 +67,13 @@ Update this file after every completed feature. Any AI agent reading this should
 - Profile completeness derived via `calculateProfileCompleteness` in `lib/profile-utils.ts` and synced on every save.
 - Resume uploads handled via Server Action `uploadResumeAction` in `actions/profile.ts`, validated for PDF mime type and 5MB limit, stored in InsForge Storage `resumes/{user.id}/resume.pdf` with `upsert: true`.
 - PostHog `profile_completed` event triggered server-side on first transition to complete status.
+- Implemented `extractProfileFromResumeAction` in `actions/profile.ts` using `pdf-parse` v2 and Groq (`openai/gpt-oss-120b`) / OpenAI (`gpt-4o`) in JSON object format to parse uploaded resumes into structured profile inputs.
+- Created `ProfilePageClient.tsx` wrapper with `useImperativeHandle` on `ProfileForm` to auto-fill form inputs upon resume extraction without immediate DB write.
+- Added `suppressHydrationWarning` on `<html>` and `<body>` in `app/layout.tsx` to eliminate hydration errors caused by browser extensions.
+- Configured dynamic import for `pdf-parse` and resolved `pdfjs.GlobalWorkerOptions.workerSrc` via `pathToFileURL` to local disk worker to prevent SSR worker resolution errors.
+- Added `createInsforgeAdmin()` in `lib/insforge-server.ts` using `createAdminClient` for storage uploads, downloads, and signed URLs.
+- Configured an `undici` agent in `lib/insforge-server.ts` enforcing IPv4 DNS lookups to eliminate DNS64/NAT64 connection timeouts to AWS S3 presigned upload URLs.
+- Integrated Groq API (`GROK_API_KEY` / `GROQ_API_KEY`) as the default AI engine for resume parsing with `openai/gpt-oss-120b`, falling back to `OPENAI_API_KEY`.
 
 ---
 

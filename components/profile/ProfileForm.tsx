@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, forwardRef, useImperativeHandle } from "react";
 import { ChevronDown, Plus, X, Calendar, Loader2, CheckCircle2, AlertCircle, Trash2 } from "lucide-react";
-import { saveProfileAction } from "@/actions/profile";
+import { saveProfileAction, ProfileFormInput } from "@/actions/profile";
 import {
   Profile,
   ExperienceLevel,
@@ -13,12 +13,17 @@ import {
   Education,
 } from "@/types";
 
+export interface ProfileFormHandle {
+  applyExtracted: (extracted: Partial<ProfileFormInput>) => void;
+}
+
 interface ProfileFormProps {
   initialProfile?: Profile | null;
   userEmail?: string;
 }
 
-export function ProfileForm({ initialProfile, userEmail = "" }: ProfileFormProps) {
+export const ProfileForm = forwardRef<ProfileFormHandle, ProfileFormProps>(
+  function ProfileForm({ initialProfile, userEmail = "" }: ProfileFormProps, ref) {
   const [isPending, startTransition] = useTransition();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -102,6 +107,66 @@ export function ProfileForm({ initialProfile, userEmail = "" }: ProfileFormProps
   const [coverLetterTone, setCoverLetterTone] = useState<CoverLetterTone>(
     initialProfile?.cover_letter_tone ?? "enthusiastic"
   );
+
+  useImperativeHandle(ref, () => ({
+    applyExtracted(extracted: Partial<ProfileFormInput>) {
+      if (extracted.full_name) setFullName(extracted.full_name);
+      if (extracted.phone) setPhone(extracted.phone);
+      if (extracted.location) setLocation(extracted.location);
+      if (extracted.linkedin_url) setLinkedinUrl(extracted.linkedin_url);
+      if (extracted.portfolio_url) setPortfolioUrl(extracted.portfolio_url);
+      if (extracted.work_authorization) setWorkAuth(extracted.work_authorization);
+
+      if (extracted.current_title) setCurrentTitle(extracted.current_title);
+      if (extracted.experience_level) setExperienceLevel(extracted.experience_level);
+      if (extracted.years_experience !== undefined && extracted.years_experience !== null) {
+        setYearsExperience(String(extracted.years_experience));
+      }
+
+      if (Array.isArray(extracted.skills) && extracted.skills.length > 0) {
+        setSkills((prev) => Array.from(new Set([...prev, ...extracted.skills!])));
+      }
+
+      if (Array.isArray(extracted.industries) && extracted.industries.length > 0) {
+        setIndustries((prev) => Array.from(new Set([...prev, ...extracted.industries!])));
+      }
+
+      if (Array.isArray(extracted.work_experience) && extracted.work_experience.length > 0) {
+        setWorkExperiences(
+          extracted.work_experience.map((w, idx) => ({
+            id: String(Date.now() + idx),
+            company: w.company || "",
+            title: w.title || "",
+            startDate: w.startDate || "",
+            endDate: w.endDate || null,
+            current: Boolean(w.current),
+            responsibilities: w.responsibilities || "",
+          }))
+        );
+      }
+
+      if (extracted.education) {
+        if (extracted.education.degree) setHighestDegree(extracted.education.degree);
+        if (extracted.education.field) setFieldOfStudy(extracted.education.field);
+        if (extracted.education.institution) setInstitutionName(extracted.education.institution);
+        if (extracted.education.graduationYear) setGraduationYear(extracted.education.graduationYear);
+      }
+
+      if (Array.isArray(extracted.job_titles_seeking) && extracted.job_titles_seeking.length > 0) {
+        setJobTitlesSeeking(extracted.job_titles_seeking.join(", "));
+      }
+
+      if (extracted.remote_preference) setRemotePreference(extracted.remote_preference);
+      if (extracted.salary_expectation) setSalaryExpectation(extracted.salary_expectation);
+      if (Array.isArray(extracted.preferred_locations) && extracted.preferred_locations.length > 0) {
+        setPreferredLocations(extracted.preferred_locations.join(", "));
+      }
+      if (extracted.cover_letter_tone) setCoverLetterTone(extracted.cover_letter_tone);
+
+      setSuccessMessage("Profile fields auto-filled from resume! Please review and click 'Save Profile'.");
+      setErrorMessage(null);
+    },
+  }));
 
   // Skill Handlers
   const handleAddSkill = () => {
@@ -859,4 +924,5 @@ export function ProfileForm({ initialProfile, userEmail = "" }: ProfileFormProps
       </div>
     </div>
   );
-}
+});
+
