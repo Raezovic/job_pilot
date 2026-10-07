@@ -22,7 +22,7 @@ The `--font-sans` variable is already declared in `@theme` in globals.css. Apply
 - Page max-width: 1440px, centered
 - Main content area padding: 32px on all sides
 - Gap between page sections: 24px
-- Header height: 64px, full width, white background, padding 0 24px
+- Header height: 80px (h-20 min-h-20 shrink-0), full width, white background, padding 0 24px (sm: 32px)
 - All pages use top navbar only — no sidebar, no drawer
 
 ---

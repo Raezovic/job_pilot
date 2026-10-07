@@ -28,6 +28,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      {/* Global Navigation Header */}
       <Navbar />
       <main className="flex-grow py-8 px-4 sm:px-6">
         <div className="mx-auto max-w-[840px] space-y-6">

@@ -81,3 +81,4 @@ Update this file after every completed feature. Any AI agent reading this should
 
 - Initialized globals.css with the design tokens from ui-tokens.md using Tailwind v4 theme syntax.
 - Updated root layout to use Inter font and setup JobPilot metadata.
+- Updated Navbar dimensions from 64px (`h-16`) to 80px (`h-20`) with defensive `min-h-20` and `shrink-0`, responsive horizontal padding (`px-6 sm:px-8`), and balanced logo/CTA button scaling to eliminate cramped vertical spacing and prevent flex compression on content-heavy pages like Profile.

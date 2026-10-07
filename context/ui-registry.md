@@ -22,7 +22,7 @@ After building any component — update this file with the component name, file 
 
 #### Navbar
 - **File:** [Navbar.tsx](file:///c:/Users/ADMIN/OneDrive/Desktop/job_pilot/components/layout/Navbar.tsx)
-- **Key Classes:** `sticky top-0 z-50 h-16 w-full border-b border-border bg-surface px-6`, `flex items-center gap-2`, `bg-linear-to-tr from-accent to-accent-dark`, `text-[19px] font-bold text-text-darkest`, `text-sm font-medium text-text-dark hover:text-accent`, `bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:bg-accent-dark shadow-sm`
+- **Key Classes:** `sticky top-0 z-50 h-20 min-h-20 shrink-0 w-full border-b border-border bg-surface px-6 sm:px-8`, `flex items-center gap-3`, `bg-linear-to-tr from-accent to-accent-dark`, `text-xl font-bold text-text-darkest`, `text-sm font-medium text-text-dark hover:text-accent`, `bg-accent px-5 py-2.5 text-sm font-medium text-accent-foreground hover:bg-accent-dark shadow-sm`
 
 #### Footer
 - **File:** [Footer.tsx](file:///c:/Users/ADMIN/OneDrive/Desktop/job_pilot/components/layout/Footer.tsx)
@@ -88,7 +88,7 @@ Full-screen login wrapper aligning the LoginCard centrally.
 
 ### Navbar (Updated)
 File: [Navbar.tsx](file:///c:/Users/ADMIN/OneDrive/Desktop/job_pilot/components/layout/Navbar.tsx)
-Last updated: 2026-07-27
+Last updated: 2026-10-06
 
 | Property         | Class           |
 | ---------------- | --------------- |
@@ -97,7 +97,7 @@ Last updated: 2026-07-27
 | Border radius    | `none`          |
 | Text — primary   | `text-text-primary` |
 | Text — secondary | `text-text-dark` |
-| Spacing          | `h-16 px-6`, `gap-8` |
+| Spacing          | `h-20 min-h-20 shrink-0 px-6 sm:px-8`, `gap-8` |
 | Hover state      | `hover:text-accent` |
 | Shadow           | `shadow-sm`     |
 | Accent usage     | `text-accent` (active route) |
